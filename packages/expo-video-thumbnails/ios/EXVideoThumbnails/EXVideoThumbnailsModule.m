@@ -5,9 +5,9 @@
 #import <AVFoundation/AVAsset.h>
 #import <UIKit/UIKit.h>
 
-NSString* const OPTIONS_KEY_QUALITY = @"quality";
-NSString* const OPTIONS_KEY_TIME = @"time";
-NSString* const OPTIONS_KEY_HEADERS = @"headers";
+NSString* const EX_VT_OPTIONS_KEY_QUALITY = @"quality";
+NSString* const EX_VT_OPTIONS_KEY_TIME = @"time";
+NSString* const EX_VT_OPTIONS_KEY_HEADERS = @"headers";
 
 @implementation EXVideoThumbnailsModule
 
@@ -27,17 +27,17 @@ UM_EXPORT_METHOD_AS(getThumbnail,
 {
     NSURL *url = [NSURL URLWithString:source];
     if ([url isFileURL]) {
-        if (!_fileSystem) {
-            return reject(@"E_MISSING_MODULE", @"No FileSystem module.", nil);
-        }
-        if (!([_fileSystem permissionsForURI:url] & UMFileSystemPermissionRead)) {
-            return reject(@"E_FILESYSTEM_PERMISSIONS", [NSString stringWithFormat:@"File '%@' isn't readable.", source], nil);
-        }
+      if (!_fileSystem) {
+        return reject(@"E_MISSING_MODULE", @"No FileSystem module.", nil);
+      }
+      if (!([_fileSystem permissionsForURI:url] & UMFileSystemPermissionRead)) {
+        return reject(@"E_FILESYSTEM_PERMISSIONS", [NSString stringWithFormat:@"File '%@' isn't readable.", source], nil);
+      }
     }
     
-    long timeInMs = [(NSNumber *)options[OPTIONS_KEY_TIME] integerValue] ?: 0;
-    float quality = [(NSNumber *)options[OPTIONS_KEY_QUALITY] floatValue] ?: 1.0;
-    NSDictionary *headers = options[OPTIONS_KEY_HEADERS] ?: @{};
+    long timeInMs = [(NSNumber *)options[EX_VT_OPTIONS_KEY_TIME] integerValue] ?: 0;
+    float quality = [(NSNumber *)options[EX_VT_OPTIONS_KEY_QUALITY] floatValue] ?: 1.0;
+    NSDictionary *headers = options[EX_VT_OPTIONS_KEY_HEADERS] ?: @{};
     
     
     AVURLAsset *asset = [[AVURLAsset alloc] initWithURL:url options:@{@"AVURLAssetHTTPHeaderFieldsKey": headers}];
@@ -65,9 +65,11 @@ UM_EXPORT_METHOD_AS(getThumbnail,
     NSURL *fileURL = [NSURL fileURLWithPath:newPath];
     NSString *filePath = [fileURL absoluteString];
     
-    resolve(@{ @"uri" : filePath,
-               @"width" : @(thumbnail.size.width),
-               @"height" : @(thumbnail.size.height)});
+    resolve(@{
+              @"uri" : filePath,
+              @"width" : @(thumbnail.size.width),
+              @"height" : @(thumbnail.size.height),
+              });
 }
 
 @end

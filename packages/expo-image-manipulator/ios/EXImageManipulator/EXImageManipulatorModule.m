@@ -13,14 +13,14 @@
 
 @end
 
-NSString* const ACTION_KEY_RESIZE = @"resize";
-NSString* const ACTION_KEY_ROTATE = @"rotate";
-NSString* const ACTION_KEY_FLIP = @"flip";
-NSString* const ACTION_KEY_CROP = @"crop";
+NSString* const EX_IM_ACTION_KEY_RESIZE = @"resize";
+NSString* const EX_IM_ACTION_KEY_ROTATE = @"rotate";
+NSString* const EX_IM_ACTION_KEY_FLIP = @"flip";
+NSString* const EX_IM_ACTION_KEY_CROP = @"crop";
 
-NSString* const SAVE_OPTIONS_KEY_FORMAT = @"format";
-NSString* const SAVE_OPTIONS_KEY_COMPRESS = @"compress";
-NSString* const SAVE_OPTIONS_KEY_BASE64 = @"base64";
+NSString* const EX_IM_SAVE_OPTIONS_KEY_FORMAT = @"format";
+NSString* const EX_IM_SAVE_OPTIONS_KEY_COMPRESS = @"compress";
+NSString* const EX_IM_SAVE_OPTIONS_KEY_BASE64 = @"base64";
 
 @implementation EXImageManipulatorModule
 
@@ -94,25 +94,25 @@ UM_EXPORT_METHOD_AS(manipulateAsync,
 {
   for (NSDictionary *action in actions) {
     int actionsCounter = 0;
-    if (action[ACTION_KEY_RESIZE]) {
+    if (action[EX_IM_ACTION_KEY_RESIZE]) {
       actionsCounter += 1;
     }
     
-    if (action[ACTION_KEY_ROTATE]) {
+    if (action[EX_IM_ACTION_KEY_ROTATE]) {
       actionsCounter += 1;
     }
     
-    if (action[ACTION_KEY_FLIP]) {
+    if (action[EX_IM_ACTION_KEY_FLIP]) {
       actionsCounter += 1;
     }
     
-    if (action[ACTION_KEY_CROP]) {
+    if (action[EX_IM_ACTION_KEY_CROP]) {
       actionsCounter += 1;
       
-      if (action[ACTION_KEY_CROP][@"originX"] == nil
-          || action[ACTION_KEY_CROP][@"originY"] == nil
-          || action[ACTION_KEY_CROP][@"width"] == nil
-          || action[ACTION_KEY_CROP][@"height"] == nil
+      if (action[EX_IM_ACTION_KEY_CROP][@"originX"] == nil
+          || action[EX_IM_ACTION_KEY_CROP][@"originY"] == nil
+          || action[EX_IM_ACTION_KEY_CROP][@"width"] == nil
+          || action[EX_IM_ACTION_KEY_CROP][@"height"] == nil
           ) {
         *errorMessage = @"Invalid crop options has been passed. Please make sure the object contains originX, originY, width and height.";
         return NO;
@@ -122,10 +122,10 @@ UM_EXPORT_METHOD_AS(manipulateAsync,
     
     if (actionsCounter != 1) {
       *errorMessage = [NSString stringWithFormat:@"Single action must contain exactly one transformation from list: ['%@', '%@', '%@', '%@']",
-                       ACTION_KEY_RESIZE,
-                       ACTION_KEY_ROTATE,
-                       ACTION_KEY_FLIP,
-                       ACTION_KEY_CROP];
+                       EX_IM_ACTION_KEY_RESIZE,
+                       EX_IM_ACTION_KEY_ROTATE,
+                       EX_IM_ACTION_KEY_FLIP,
+                       EX_IM_ACTION_KEY_CROP];
       return NO;
     }
   }
@@ -134,7 +134,7 @@ UM_EXPORT_METHOD_AS(manipulateAsync,
 
 -(BOOL)areSaveOptionsValid:(NSDictionary *)saveOptions errorMessage:(NSString **)errorMessage
 {
-  NSString* format = saveOptions[SAVE_OPTIONS_KEY_FORMAT];
+  NSString* format = saveOptions[EX_IM_SAVE_OPTIONS_KEY_FORMAT];
   if (![format isEqualToString:@"jpeg"] && ![format isEqualToString:@"png"]) {
     *errorMessage = [NSString stringWithFormat:@"SaveOption 'format' must be one of ['png', 'jpeg']. Obtained '%@'.", format];
     return NO;
@@ -218,24 +218,24 @@ UM_EXPORT_METHOD_AS(manipulateAsync,
               rejecter:(UMPromiseRejectBlock)reject
 {
   for (NSDictionary *action in actions) {
-    if (action[ACTION_KEY_RESIZE]) {
-      image = [self resizeImage:image options:action[ACTION_KEY_RESIZE]];
-    } else if (action[ACTION_KEY_ROTATE]) {
-      image = [self rotateImage:image rotation:(NSNumber *)action[ACTION_KEY_ROTATE]];
-    } else if (action[ACTION_KEY_FLIP]) {
-      image = [self flipImage:image flipType:action[ACTION_KEY_FLIP]];
-    } else if (action[ACTION_KEY_CROP]) {
+    if (action[EX_IM_ACTION_KEY_RESIZE]) {
+      image = [self resizeImage:image options:action[EX_IM_ACTION_KEY_RESIZE]];
+    } else if (action[EX_IM_ACTION_KEY_ROTATE]) {
+      image = [self rotateImage:image rotation:(NSNumber *)action[EX_IM_ACTION_KEY_ROTATE]];
+    } else if (action[EX_IM_ACTION_KEY_FLIP]) {
+      image = [self flipImage:image flipType:action[EX_IM_ACTION_KEY_FLIP]];
+    } else if (action[EX_IM_ACTION_KEY_CROP]) {
       NSString *errorMessage;
-      image = [self cropImage:image options:action[ACTION_KEY_CROP] didFailWithErrorMessage:&errorMessage];
+      image = [self cropImage:image options:action[EX_IM_ACTION_KEY_CROP] didFailWithErrorMessage:&errorMessage];
       if (errorMessage != nil) {
         return reject(@"E_INVALID_CROP_DATA", errorMessage, nil);
       }
     }
   }
   
-  float compressionValue = saveOptions[SAVE_OPTIONS_KEY_COMPRESS] != nil ? [(NSNumber *)saveOptions[SAVE_OPTIONS_KEY_COMPRESS] floatValue] : 1.0;
+  float compressionValue = saveOptions[EX_IM_SAVE_OPTIONS_KEY_COMPRESS] != nil ? [(NSNumber *)saveOptions[EX_IM_SAVE_OPTIONS_KEY_COMPRESS] floatValue] : 1.0;
   
-  NSString *format = saveOptions[SAVE_OPTIONS_KEY_FORMAT];
+  NSString *format = saveOptions[EX_IM_SAVE_OPTIONS_KEY_FORMAT];
   NSData *imageData = nil;
   NSString *extension;
   if ([format isEqualToString:@"jpeg"]) {
@@ -258,7 +258,7 @@ UM_EXPORT_METHOD_AS(manipulateAsync,
   response[@"uri"] = filePath;
   response[@"width"] = @(CGImageGetWidth(image.CGImage));
   response[@"height"] = @(CGImageGetHeight(image.CGImage));
-  if (saveOptions[SAVE_OPTIONS_KEY_BASE64] && [saveOptions[SAVE_OPTIONS_KEY_BASE64] boolValue]) {
+  if (saveOptions[EX_IM_SAVE_OPTIONS_KEY_BASE64] && [saveOptions[EX_IM_SAVE_OPTIONS_KEY_BASE64] boolValue]) {
     response[@"base64"] = [imageData base64EncodedStringWithOptions:0];
   }
   resolve(response);
